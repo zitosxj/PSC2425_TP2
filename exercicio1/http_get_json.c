@@ -50,7 +50,7 @@ json_t *http_get_json(const char *url) {
     };
 
     curl_easy_setopt(hcurl, CURLOPT_WRITEDATA, &write_result);
-	curl_easy_setopt(hcurl, CURLOPT_VERBOSE, 3L);
+	curl_easy_setopt(hcurl, CURLOPT_VERBOSE, 0L);
 
 	// Send request and returns only after the answer is received
 	int curl_res = curl_easy_perform(hcurl);
