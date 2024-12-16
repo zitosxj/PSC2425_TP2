@@ -13,7 +13,7 @@
 #define PRODUCTS_KEY					"products"
 
 
-// Obter todos os produtos DummyJSON
+// Obter todos os produtos do site
 Products *products_get() {
 	Products *products = (Products *)malloc(sizeof(Products));
 	

@@ -116,7 +116,6 @@ Users *user_get(){
 
 on_error:
 	json_decref(get_reponse_json);
-
 	return users;
 }
 
