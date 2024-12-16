@@ -1,6 +1,6 @@
-/* *************************************************************************************
+/* ********************************************************************
  * PSC 2425i - Grupo 3 (13909 Dinis Lopes, 46974 Luís Alves)  
- * *************************************************************************************/
+ * ********************************************************************/
 
 #include <curl/curl.h>
 #include <jansson.h>
@@ -62,7 +62,7 @@ json_t *http_get_json(const char *url) {
 	curl_easy_cleanup(hcurl);
 
 	if (CURLE_OK != curl_res) {
-		printf("Curl error [#%X]: \"%s\"\n", curl_res, error_buf);
+		fprintf(stderr, "Curl error [#%X]: \"%s\"\n", curl_res, error_buf);
         goto error;
 	}
 
