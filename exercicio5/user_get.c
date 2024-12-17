@@ -76,7 +76,7 @@ on_error:
 return users;
 }
 
- 
+
 
 User *extract_user(json_t *users_data) {
 
