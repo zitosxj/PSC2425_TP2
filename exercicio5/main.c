@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <dlfcn.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include "user_get.h"
 
 #define RETURN_MSG "Prima ENTER para retornar ao menu."
-#define USER_INPUT 255 
+#define SLEEP_TIME 0
+#define USER_INPUT 255
 
 
 typedef struct {
@@ -16,6 +18,8 @@ typedef struct {
 
 Menu_Option *menu = NULL;
 int menuItens = 0;
+void **imported_libs = NULL; 	//referencia para as bibliotecas importadas
+int lib_count = 0;				// quantidade de bibliotecas importadas 
 User app_user;
 Users *users;
 
@@ -29,36 +33,34 @@ void return_To_Menu(){
 
 Menu_Option *add_menu_item(Menu_Option *menu, int *menuItens, char key, void (*function)(), const char *description);
 
-void opcaoU( const char *args );
-void opcaoZ( const char *args );
-void opcaoP( const char *args );
-void opcaoC( const char *args );
-void opcaoO( const char *args );
-void opcaoF( const char *args );
-void opcaoM( const char *args );
-void opcaoT( const char *args );
+void users_list( const char *args );
+void user_select( const char *args );
+void products_list( const char *args );
+void cart_list( const char *args );
+void cart_add_product( const char *args );
+void cart_put( const char *args );
+void add_external_lib( const char *args );
+void exit_program( const char *args );
 
 int main(){
 	
-
 	char input[USER_INPUT];
 	char arguments[USER_INPUT];
 	char selected_Option;
 
-    menu = add_menu_item(menu, &menuItens, 'U', opcaoU, "Listar todos os utilizadores");
-    menu = add_menu_item(menu, &menuItens, 'Z', opcaoZ, "Seleccionar utilizador 'Z <identificador>'");
-    menu = add_menu_item(menu, &menuItens, 'P', opcaoP, 
+    menu = add_menu_item(menu, &menuItens, 'U', users_list, "Listar todos os utilizadores");
+    menu = add_menu_item(menu, &menuItens, 'Z', user_select, "Seleccionar utilizador 'Z <identificador>'");
+    menu = add_menu_item(menu, &menuItens, 'P', products_list, 
         "Listar os produtos da categoria indicada segundo o critério de \n"
         "\t ordenação indicado. Se a categoria não for reconhecida lista \n"
         "\t todos os produtos. Os critérios possíveis são “preço \n"
         "\t crescente” ou “preço decrescente”.\n"
         "\t Utilize os sinais < e > para indicar.");
-    menu = add_menu_item(menu, &menuItens, 'C', opcaoC, "Listar os produtos que estão no carrinho de compras");
-    menu = add_menu_item(menu, &menuItens, 'O', opcaoO, "Acrescentar um produto ao carrinho de compras 'O <produto> <quantidade>'");
-    menu = add_menu_item(menu, &menuItens, 'F', opcaoF, "Finalizar compra");
-    menu = add_menu_item(menu, &menuItens, 'M', opcaoM, "Adicionar funcionalidade <Tecla Opcao> <nome da funcao/ficheiro> <descricao>");
-    menu = add_menu_item(menu, &menuItens, 'T', opcaoT, "Terminar Programa");
-
+    menu = add_menu_item(menu, &menuItens, 'C', cart_list, "Listar os produtos que estão no carrinho de compras");
+    menu = add_menu_item(menu, &menuItens, 'O', cart_add_product, "Acrescentar um produto ao carrinho de compras 'O <produto> <quantidade>'");
+    menu = add_menu_item(menu, &menuItens, 'F', cart_put, "Finalizar compra");
+    menu = add_menu_item(menu, &menuItens, 'M', add_external_lib, "Adicionar funcionalidade <Tecla Opcao> <nome da funcao/ficheiro> <descricao>");
+    menu = add_menu_item(menu, &menuItens, 'T', exit_program, "Terminar Programa");
 
 	do {
 		clear_Screen();
@@ -77,6 +79,7 @@ int main(){
 
 		//Separa opcao de argumentos
 		sscanf(input, " %c %[^\n]", &selected_Option, arguments);
+        
         
         if( selected_Option >= 'a' && selected_Option <= 'z' )
 			selected_Option -= 'a' - 'A';
@@ -122,6 +125,9 @@ Menu_Option *add_menu_item(Menu_Option *menu, int *menuItens, char key, void (*f
 }
 
 void free_menu(Menu_Option *menu, int menuItens) {
+    printf("A remover menu itens...\n");
+	sleep(SLEEP_TIME);
+
 	//Libertar memoria alocada para os items de menu
 	for (int i = 0; i < menuItens; i++) {
 		if (menu[i].descricao) {
@@ -131,7 +137,7 @@ void free_menu(Menu_Option *menu, int menuItens) {
 	free(menu);
 }
 
-void opcaoU( const char *args ) {
+void users_list( const char *args ) {
 	clear_Screen();
 
 	users = user_get();
@@ -153,7 +159,7 @@ void opcaoU( const char *args ) {
 	return_To_Menu();
 }
 
-void opcaoZ( const char *args ) {
+void user_select( const char *args ) {
 	clear_Screen();
 	char inner_args[USER_INPUT];
 
@@ -171,7 +177,7 @@ void opcaoZ( const char *args ) {
 	return_To_Menu();
 }
 
-void opcaoP( const char *args ) {
+void products_list( const char *args ) {
 	clear_Screen();
 	
 	char inner_args[USER_INPUT];
@@ -183,12 +189,12 @@ void opcaoP( const char *args ) {
 	return_To_Menu();
 }
 
-void opcaoC( const char *args ) {
+void cart_list( const char *args ) {
 	clear_Screen();
     printf("Você escolheu a opção C.\n");
 	return_To_Menu();
 }
-void opcaoO( const char *args ) {
+void cart_add_product( const char *args ) {
 	clear_Screen();
 	
 	char inner_args[USER_INPUT];
@@ -200,16 +206,23 @@ void opcaoO( const char *args ) {
     printf("[O] Você escolheu acrescentar %d %s ao carrinho.\n", qty, product);
 	return_To_Menu();
 }
-void opcaoF( const char *args ) {
+void cart_put( const char *args ) {
 	clear_Screen();
     printf("Você escolheu a opção F.\n");
 	return_To_Menu();
 }
 
 
-void opcaoM( const char *args ) {
+void add_external_lib( const char *args ) {
 	clear_Screen();
 	char inner_args[USER_INPUT];
+	
+	if (args == NULL){
+		printf("Parâmetros inválidos. Exemplo de uso: M <Tecla> <Nome da Funcao/Ficheiro> <Descricao>\n");
+		return_To_Menu();
+		return;
+	}
+	
 	strcpy(inner_args, args);
 	
 	char * new_key = strtok(inner_args, " ");
@@ -244,10 +257,15 @@ void opcaoM( const char *args ) {
 			return;
 		}
 
+
+	lib_count++;
+    imported_libs = realloc(imported_libs, lib_count * sizeof(void *));
+    imported_libs[lib_count - 1] = handle;
+
 	void (*new_function)(const char *) = dlsym(handle, new_file_name);
 	if (!new_function) {
 		printf("Função não encontrada: %s\n", dlerror());
-		dlclose(handle);
+
 		return_To_Menu();
 		return;
 	}
@@ -259,11 +277,24 @@ void opcaoM( const char *args ) {
 	return_To_Menu();
 }
 
-void opcaoT( const char *args ) {
+void free_libs(){
+    printf("A libertar bibliotecas importadas...\n");
+    sleep(SLEEP_TIME);
+
+	for (int i = 0; i < lib_count; i++) {
+		dlclose(imported_libs[i]);
+	}
+	
+	free(imported_libs);	
+}
+
+void exit_program( const char *args ) {
 	clear_Screen();
+
+    printf("Terminando o programa...\n");
+	sleep(SLEEP_TIME);
+
 	free_users(users);
 	free_menu(menu, menuItens);
-	
-	//int dlclose(void *handle); //descarrega biblioteca partilhada se contador atinge 0. Necessário???
-    printf("Terminando o programa...\n");
+	free_libs();
 }
