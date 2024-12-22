@@ -58,9 +58,9 @@ size_t product_col_dim[4] = {PRODUCT_ID_DIM, PRODUCT_PRICE_DIM, PRODUCT_CATEGORY
 size_t cart_col_dim[3] = {CART_DESCRIPTION_DIM, CART_PRICE_DIM, CART_QUANTITY_DIM};
 
 // variáveis Gerais
-Users *users;
-Products *products; 
-Cart  *cart;
+Users *users = NULL;
+Products *products = NULL; 
+Cart  *cart = NULL;
 
 
 /* ********************************************************************
@@ -320,7 +320,7 @@ int cart_view(Cart *cart) {
 
 
 #define RETURN_MSG "Prima ENTER para retornar ao menu."
-#define SLEEP_TIME 1
+#define SLEEP_TIME 0
 #define USER_INPUT 255
 
 
@@ -373,19 +373,21 @@ void free_menu(Menu_Option *menu, int menuItens) {
 
 // Lista todos os utilizadores
 void users_list(const char *args) {
+	if (users != NULL) user_free(users);
 	users = user_get(USERS_ALL_URI);
 	users_view(users);
 }
 
 // Associa um utiliador ao carrinho de compras
 void user_select( const char *args ) {
-	clear_screen();
 	char inner_args[USER_INPUT];
 
 	if (users && users->count > 0){
 		strcpy(inner_args, args);
 
 		int id = atoi(strtok(inner_args, " "));
+		
+		
 		app_user.id = id;
 		app_user.name = users->users[id - 1].name;
 
@@ -398,16 +400,36 @@ void user_select( const char *args ) {
 
 
 void products_list(const char *args) {
-	clear_screen();
-	
-	char inner_args[USER_INPUT];
+	char inner_args[USER_INPUT], order[5];
 	strcpy(inner_args, args);
 	char *category = strtok(inner_args, " ");
-	char *order = strtok(NULL, " ");
+	char *order_cmd = strtok(NULL, " ");
 	
-    printf("Você escolheu a opção P.\n Categoria: %s\n Ordenacao: %s\n", category, order);
-	return_To_Menu();
+	switch (*order_cmd) {
+		case '<':
+			strcpy(order, "desc");
+			break;
+		case '>':
+			strcpy(order, "asc");
+			break;
+		default:
+			printf("\n\nParametros inválidos, prima a tecla <enter> para continuar");
+			getchar();
+			return;
+			break;
+	}
+	
+	char uri[URI_STR];
+	snprintf(uri, sizeof(uri), "https://dummyjson.com/products/category/%s?sortBy=price&order=%s&select=price,description,category", category, order);
+	if (products != NULL) products_free(products);
+	products = products_get(uri);
+	if (products->size == 0) {
+		products_free(products);
+		products = products_get(PRODUCTS_ALL_URI);
+	}
+	products_view(products);
 }
+
 
 // Lista todos os produtos
 //void products_list (const char *category, const char *order) {
@@ -422,7 +444,7 @@ void products_list(const char *args) {
 //}
 
 
-// Lista todos os produtos do carrinho de compras
+// Lista todos os produtos do cariinho de compras
 void cart_list(const char *args) {
 	cart_view(cart);
 }
@@ -453,84 +475,80 @@ void cart_send(const char *args) {
  * ********************************************************************/
 
 
-void add_external_lib( const char *args ) {
-	clear_screen();
-	char inner_args[USER_INPUT];
+//void add_external_lib( const char *args ) {
+	//clear_screen();
+	//char inner_args[USER_INPUT];
 	
+	//if (args == NULL){
+		//printf("Parâmetros inválidos. Exemplo de uso: M <Tecla> <Nome da Funcao/Ficheiro> <Descricao>\n");
+		//return_To_Menu();
+		//return;
+	//}
 	
-	if (args == NULL){
-		printf("Parâmetros inválidos. Exemplo de uso: M <Tecla> <Nome da Funcao/Ficheiro> <Descricao>\n");
-		return_To_Menu();
-		return;
-	}
+	//strcpy(inner_args, args);
 	
-	strcpy(inner_args, args);
+	//char * new_key = strtok(inner_args, " ");
+	//char * new_file_name = strtok(NULL, " ");
+	//char * new_description = strtok(NULL, "\0");
 
-	char * new_key = strtok(inner_args, " ");
-	char * new_file_name = strtok(NULL, " ");
-	char * new_description = strtok(NULL, "\0");
-
-	if( new_key[0] >= 'a' && new_key[0] <= 'z' )
-		new_key[0] -= 'a' - 'A';
+	//if( new_key[0] >= 'a' && new_key[0] <= 'z' )
+		//new_key[0] -= 'a' - 'A';
 
 
-	if (!new_key || strlen(new_key) != 1 || !new_file_name || !new_description) {
-        printf("Parâmetros inválidos. Exemplo de uso: M <Tecla> <Nome da Funcao/Ficheiro> <Descricao>\n");
-        return_To_Menu();
-        return;
-    }
+	//if (!new_key || strlen(new_key) != 1 || !new_file_name || !new_description) {
+        //printf("Parâmetros inválidos. Exemplo de uso: M <Tecla> <Nome da Funcao/Ficheiro> <Descricao>\n");
+        //return_To_Menu();
+        //return;
+    //}
+
+	//for (int i = 0; i < menuItens; i++){
+		//if(menu[i].tecla == new_key[0]){
+			//printf("Tecla %c já utilizada noutra opção de menu!\n", new_key[0]);
+			//return_To_Menu();
+			//return;
+		//}
+	//}
+
+	//char din_lib[USER_INPUT];
+	//snprintf(din_lib, sizeof(din_lib), "./lib%s.so", new_file_name);
+
+	//void *handle = dlopen(din_lib, RTLD_NOW);
+		//if (!handle) {
+			//printf("Falha ao carregar o arquivo: %s\n", dlerror());
+			//return_To_Menu();
+			//return;
+		//}
 
 
-	for (int i = 0; i < menuItens; i++){
-		if(menu[i].tecla == new_key[0]){
-			printf("Tecla %c já utilizada noutra opção de menu!\n", new_key[0]);
-			return_To_Menu();
-			return;
-		}
-	}
+	//lib_count++;
+    //imported_libs = realloc(imported_libs, lib_count * sizeof(void *));
+    //imported_libs[lib_count - 1] = handle;
 
-	char din_lib[USER_INPUT];
-	snprintf(din_lib, sizeof(din_lib), "./lib%s.so", new_file_name);
+	//void (*new_function)(const char *) = dlsym(handle, new_file_name);
+	//if (!new_function) {
+		//printf("Função não encontrada: %s\n", dlerror());
 
-	void *handle = dlopen(din_lib, RTLD_NOW);
-		if (!handle) {
-			printf("Falha ao carregar o arquivo: %s\n", dlerror());
-			return_To_Menu();
-			return;
-		}
-
-
-	lib_count++;
-    imported_libs = realloc(imported_libs, lib_count * sizeof(void *));
-    imported_libs[lib_count - 1] = handle;
-
-	void (*new_function)(const char *); // = dlsym(handle, new_file_name);
-	*(void **)(&new_function) = dlsym(handle, new_file_name);
-
-	if (!new_function) {
-		printf("Função não encontrada: %s\n", dlerror());
-
-		return_To_Menu();
-		return;
-	}
+		//return_To_Menu();
+		//return;
+	//}
 	
-	menu = add_menu_item(menu, &menuItens, new_key[0], new_function, new_description);
+	//menu = add_menu_item(menu, &menuItens, new_key[0], new_function, new_description);
 
-	printf("Nova opção de menu adicionada\n \tKey: %s, File_name: %s, Desc: %s\n", new_key, new_file_name, new_description);
+	//printf("Nova opção de menu adicionada\n \tKey: %s, File_name: %s, Desc: %s\n", new_key, new_file_name, new_description);
 		
-	return_To_Menu();
-}
+	//return_To_Menu();
+//}
 
-void free_libs(){
-    printf("A libertar bibliotecas importadas...\n");
-    sleep(SLEEP_TIME);
+//void free_libs(){
+    //printf("A libertar bibliotecas importadas...\n");
+    //sleep(SLEEP_TIME);
 
-	for (int i = 0; i < lib_count; i++) {
-		dlclose(imported_libs[i]);
-	}
+	//for (int i = 0; i < lib_count; i++) {
+		//dlclose(imported_libs[i]);
+	//}
 	
-	free(imported_libs);	
-}
+	//free(imported_libs);	
+//}
 
 
 
@@ -544,12 +562,10 @@ void exit_program( const char *args ) {
 
     printf("Terminando o programa...\n");
 	sleep(SLEEP_TIME);
-	free_libs();
-	sleep(SLEEP_TIME);
 
 	user_free(users);
 	free_menu(menu, menuItens);
-
+	//free_libs();
 }
  
  
@@ -569,7 +585,7 @@ int main(){
     menu = add_menu_item(menu, &menuItens, 'C', cart_list, "Listar os produtos que estão no carrinho de compras");
     menu = add_menu_item(menu, &menuItens, 'O', cart_add_product, "Acrescentar um produto ao carrinho de compras 'O <produto> <quantidade>'");
     menu = add_menu_item(menu, &menuItens, 'F', cart_send, "Finalizar compra");
-	menu = add_menu_item(menu, &menuItens, 'M', add_external_lib, "Adicionar funcionalidade <Tecla Opcao> <nome da funcao/ficheiro> <descricao>");
+    //menu = add_menu_item(menu, &menuItens, 'M', add_external_lib, "Adicionar funcionalidade <Tecla Opcao> <nome da funcao/ficheiro> <descricao>");
     menu = add_menu_item(menu, &menuItens, 'T', exit_program, "Terminar Programa");
 
 	do {
