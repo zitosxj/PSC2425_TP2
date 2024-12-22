@@ -19,6 +19,11 @@ http_get_json.o: http_get_json.c ../exercicio1/http_get_json.h
 libget_todos.so: get_todos.c
 	gcc -shared -fPIC -o libget_todos.so get_todos.c
 
+# make libget_categories.so
+# import on app "M E get_todos Obter lista de TODOS
+libget_categories.so: get_categories.c
+	gcc -shared -fPIC -o libget_categories.so get_categories.c
+
 #not used
 libtodo.so: get_random_todo.c
 	gcc -shared -fPIC -o libtodo.so get_random_todo.c
