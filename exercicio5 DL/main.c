@@ -242,32 +242,26 @@ int products_view(Products *products) {
 }
 
 
-void products_list (const char *category, const char *sort) {
-	//char uri[URI_STR];
-	//snprintf(uri, sizeof(uri), "https://dummyjson.com/products/category/%s?limit=0?sortBy=price&order=%s&select=price,description,category", category, sort);
-	//printf("\n%s\n", uri);
-	//Products *products = products_get(PRODUCTS_ALL_URI);
-	
-	//products_view(products);
-	//products_free(products); 
-	//printf("Função\nCategory: %s\nSort:%s", *args[0], a*rgs[1]);
-	
-	//char inner_args[USER_INPUT];
-	//strcpy(inner_args, args);
-	//char *category = strtok(inner_args, " ");
-	//char *order = strtok(NULL, " ");
-	
-    //printf("Você escolheu a opção P.\n Categoria: %s\n Ordenacao: %s\n", category, order);
-	//return_To_Menu()
+void products_list (const char *category, const char *order) {
+	char uri[URI_STR];
+	snprintf(uri, sizeof(uri), "https://dummyjson.com/products/category/%s?sortBy=price&order=%s&select=price,description,category", category, order);
+	products = products_get(uri);
+	if (products->size == 0) {
+		products_free(products);
+		products = products_get(PRODUCTS_ALL_URI);
+	}
+	products_view(products);	
 }
 	
 
 	
 // Testar subfunções dos comandos
 int main() {
-	users_list();
-	user_free(users); 
-	//products_list("smartphones", "dsc");
+	//users_list();
+	//user_free(users); 
+	
+	products_list("smartphonesss", "asc");
+	products_free(products); 
 	
 	return 0;
 }
