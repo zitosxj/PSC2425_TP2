@@ -445,22 +445,14 @@ void products_list(const char *args) {
 }
 
 
-// Lista todos os produtos
-//void products_list (const char *category, const char *order) {
-	//char uri[URI_STR];
-	//snprintf(uri, sizeof(uri), "https://dummyjson.com/products/category/%s?sortBy=price&order=%s&select=price,description,category", category, order);
-	//products = products_get(uri);
-	//if (products->size == 0) {
-		//products_free(products);
-		//products = products_get(PRODUCTS_ALL_URI);
-	//}
-	//products_view(products);	
-//}
-
-
 // Lista todos os produtos do cariinho de compras
 void cart_list(const char *args) {
-	cart_view(cart);
+	if (cart == NULL) {
+		printf("\n\nCarrinho de compras não existente, prima a tecla <enter> para continuar");
+		getchar();
+	} else {
+		cart_view(cart);
+	}
 }
 
 
@@ -588,27 +580,26 @@ int main(){
 	char arguments[USER_INPUT];
 	char selected_Option;
 
-    menu = add_menu_item(menu, &menuItens, 'U', users_list, "Listar todos os utilizadores");
-    menu = add_menu_item(menu, &menuItens, 'Z', user_select, "Seleccionar utilizador 'Z <identificador>'");
+    menu = add_menu_item(menu, &menuItens, 'U', users_list, "Utilizadores\t\t\tListar todos os utilizadores.");
+    menu = add_menu_item(menu, &menuItens, 'T', user_select, "uTilizador <identificador>\tAssumir o utilizador indicado como o utilizador corrente.");
     menu = add_menu_item(menu, &menuItens, 'P', products_list, 
-        "Listar os produtos da categoria indicada segundo o critério de \n"
-        "\t ordenação indicado. Se a categoria não for reconhecida lista \n"
-        "\t todos os produtos. Os critérios possíveis são “preço \n"
-        "\t crescente” ou “preço decrescente”.\n"
-        "\t Utilize os sinais < e > para indicar.");
-    menu = add_menu_item(menu, &menuItens, 'C', cart_list, "Listar os produtos que estão no carrinho de compras");
-    menu = add_menu_item(menu, &menuItens, 'O', cart_add_product, "Acrescentar um produto ao carrinho de compras 'O <produto> <quantidade>'");
-    menu = add_menu_item(menu, &menuItens, 'F', cart_send, "Finalizar compra");
+        "Produtos <categoria> <critério>\tListar os produtos da categoria indicada segundo o critério de ordenação indicado. Se a\n"
+        "\t\t\t\tcategoria não for reconhecida lista todos os produtos. Os critérios possíveis são “preço\n"
+        "\t\t\t\tcrescente” ou “preço decrescente”. Utilize os sinais < e > para indicar.");
+    menu = add_menu_item(menu, &menuItens, 'C', cart_list, "Carrinho\t\t\tListar os produtos que estão no carrinho de compras (descrição,preço,quantidade).");
+    menu = add_menu_item(menu, &menuItens, 'O', cart_add_product, "cOmprar <produto> <quantidade>\tAcrescentar um produto ao carrinho de compras.");
+    menu = add_menu_item(menu, &menuItens, 'F', cart_send, "Finalizar\t\t\tFinalizar compra.");
     //menu = add_menu_item(menu, &menuItens, 'M', add_external_lib, "Adicionar funcionalidade <Tecla Opcao> <nome da funcao/ficheiro> <descricao>");
-    menu = add_menu_item(menu, &menuItens, 'T', exit_program, "Terminar Programa");
+    menu = add_menu_item(menu, &menuItens, 'E', exit_program, "tErminar\t\t\tTermina a execução do programa.");
 
 	do {
 		clear_screen();
 		/* Lista opções do menu */
+		printf("                                COMANDOS\n\n");
         for (int i = 0; i < menuItens; i++) {
-            printf("[%c] - %s\n", menu[i].tecla, menu[i].descricao);
+            printf("%s\n", menu[i].descricao);
         }
-        printf("Escolha uma opção (ex: Z 123): ");
+        printf("\nIntroduza um comando (ex: Z 123): ");
         //scanf(" %c", &selected_Option);
 
 		if (!fgets(input, sizeof(input), stdin)) {
@@ -642,7 +633,7 @@ int main(){
 			return_To_Menu();
         }
 
-	}while (selected_Option != 'T');
+	}while (selected_Option != 'E');
 	
 	return 0;
 }
