@@ -60,7 +60,7 @@ size_t cart_col_dim[3] = {CART_DESCRIPTION_DIM, CART_PRICE_DIM, CART_QUANTITY_DI
 // variáveis Gerais
 Users *users = NULL;
 Products *products = NULL; 
-Cart  *cart;
+Cart  *cart = NULL;
 
 
 /* ********************************************************************
@@ -391,13 +391,10 @@ void user_select( const char *args ) {
 		
 		for (i = 0; (i < users->count) && (valid_id == 0); i++) {
 			if (id == users->users[i].id) valid_id = 1;
-			printf("\ni: %d, valid_id: %d, user[i].id: %d", i, valid_id, users->users[i].id);
 		}
-		printf("\nValid_id: %d\n", valid_id);
-		getchar();
 		if (valid_id == 1) {
+			if (cart == NULL) cart = malloc(sizeof(Cart));
 			cart->user_id = id;
-			//printf("i: %d", i);
 			printf("\n\nUtilizador %s selecionado, prima a tecla <enter> para continuar", users->users[i].name);
 			getchar();
 		} else {
