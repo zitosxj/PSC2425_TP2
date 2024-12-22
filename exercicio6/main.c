@@ -60,7 +60,7 @@ size_t cart_col_dim[3] = {CART_DESCRIPTION_DIM, CART_PRICE_DIM, CART_QUANTITY_DI
 // variáveis Gerais
 Users *users = NULL;
 Products *products = NULL; 
-Cart  *cart = NULL;
+Cart  *cart;
 
 
 /* ********************************************************************
@@ -380,22 +380,34 @@ void users_list(const char *args) {
 
 // Associa um utiliador ao carrinho de compras
 void user_select( const char *args ) {
-	char inner_args[USER_INPUT];
+	char inner_args[USER_INPUT], valid_id = 0;
+	int i;
 
-	if (users && users->count > 0){
-		strcpy(inner_args, args);
-
-		int id = atoi(strtok(inner_args, " "));
+	strcpy(inner_args, args);
+	char *str_id = strtok(inner_args, " ");
+	if (str_id != NULL) { 
+		int id = atoi(str_id);
+		if (users == NULL) users = user_get(USERS_ALL_URI);
 		
-		
-		app_user.id = id;
-		app_user.name = users->users[id - 1].name;
-
-		printf("User: %s, Id: %d\n", app_user.name, app_user.id);
-	} else 
-		printf("Atualize a lista de utilizadores antes de definir o user.\n");
-
-	return_To_Menu();
+		for (i = 0; (i < users->count) && (valid_id == 0); i++) {
+			if (id == users->users[i].id) valid_id = 1;
+			printf("\ni: %d, valid_id: %d, user[i].id: %d", i, valid_id, users->users[i].id);
+		}
+		printf("\nValid_id: %d\n", valid_id);
+		getchar();
+		if (valid_id == 1) {
+			cart->user_id = id;
+			//printf("i: %d", i);
+			printf("\n\nUtilizador %s selecionado, prima a tecla <enter> para continuar", users->users[i].name);
+			getchar();
+		} else {
+			printf("\n\nUtilizador %d não existe, prima a tecla <enter> para continuar", id);
+			getchar();
+		}		
+	} else {
+		printf("\n\nParâmetros em falta, prima a tecla <enter> para continuar");
+		getchar();
+	}
 }
 
 
@@ -405,29 +417,34 @@ void products_list(const char *args) {
 	char *category = strtok(inner_args, " ");
 	char *order_cmd = strtok(NULL, " ");
 	
-	switch (*order_cmd) {
-		case '<':
-			strcpy(order, "desc");
-			break;
-		case '>':
-			strcpy(order, "asc");
-			break;
-		default:
-			printf("\n\nParametros inválidos, prima a tecla <enter> para continuar");
-			getchar();
-			return;
-			break;
-	}
+	if ((category != NULL) && (order_cmd != NULL)) {
+		switch (*order_cmd) {
+			case '<':
+				strcpy(order, "desc");
+				break;
+			case '>':
+				strcpy(order, "asc");
+				break;
+			default:
+				printf("\n\nParâmetro inválido, prima a tecla <enter> para continuar");
+				getchar();
+				return;
+				break;
+		}
 	
-	char uri[URI_STR];
-	snprintf(uri, sizeof(uri), "https://dummyjson.com/products/category/%s?sortBy=price&order=%s&select=price,description,category", category, order);
-	if (products != NULL) products_free(products);
-	products = products_get(uri);
-	if (products->size == 0) {
-		products_free(products);
-		products = products_get(PRODUCTS_ALL_URI);
+		char uri[URI_STR];
+		snprintf(uri, sizeof(uri), "https://dummyjson.com/products/category/%s?sortBy=price&order=%s&select=price,description,category", category, order);
+		if (products != NULL) products_free(products);
+		products = products_get(uri);
+		if (products->size == 0) {
+			products_free(products);
+			products = products_get(PRODUCTS_ALL_URI);
+		}
+		products_view(products);
+	} else {
+		printf("\n\nParâmetros em falta, prima a tecla <enter> para continuar");
+		getchar();
 	}
-	products_view(products);
 }
 
 
